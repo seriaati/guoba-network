@@ -93,9 +93,10 @@ class Network(commands.Cog):
 
             if isinstance(channel, discord.TextChannel):
                 webhook = await self._get_webhook(channel)
+                author_name = message.author.display_name.removesuffix(" (Embed Fixer)")
                 await webhook.send(
                     content=message.content,
-                    username=f"{message.author.display_name} (來自 {message.guild.name})",
+                    username=f"{author_name} (來自 {message.guild.name})",
                     avatar_url=message.author.display_avatar.url,
                     files=[
                         await attachment.to_file(spoiler=attachment.is_spoiler())
