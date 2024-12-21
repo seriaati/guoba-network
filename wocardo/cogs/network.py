@@ -15,9 +15,12 @@ class Network(commands.Cog):
     def __init__(self, bot: WocardoBot) -> None:
         self.bot = bot
 
-    async def _is_send_user(self, message: discord.Message, guild: Guild) -> bool:
+    async def _is_send_user(
+        self, message: discord.Message, guild: Guild
+    ) -> tuple[discord.Member | None, bool]:
+        author = None
         if message.guild is None:
-            return False
+            return author, False
 
         if message.webhook_id is not None:
             # Embed Fixer compatibility
@@ -25,16 +28,16 @@ class Network(commands.Cog):
                 message.author.display_name.removesuffix(" (Embed Fixer)")
             )
             if not authors:
-                return False
+                return author, False
 
             author = authors[0]
             if author.bot:
-                return False
+                return author, False
             author_id = authors[0].id
         else:
             author_id = message.author.id
 
-        return author_id in guild.send_users
+        return author, author_id in guild.send_users
 
     async def _get_webhook(self, channel: discord.TextChannel) -> discord.Webhook:
         webhooks = await channel.webhooks()
@@ -70,7 +73,7 @@ class Network(commands.Cog):
             return
 
         # Is send user?
-        is_send_user = await self._is_send_user(message, guild)
+        author, is_send_user = await self._is_send_user(message, guild)
         if not is_send_user:
             return
 
@@ -94,10 +97,11 @@ class Network(commands.Cog):
             if isinstance(channel, discord.TextChannel):
                 webhook = await self._get_webhook(channel)
                 author_name = message.author.display_name.removesuffix(" (Embed Fixer)")
+                author = author or message.author
                 await webhook.send(
                     content=message.content,
                     username=f"{author_name} (來自:{message.guild.name})",
-                    avatar_url=message.author.display_avatar.url,
+                    avatar_url=author.display_avatar.url,
                     files=[
                         await attachment.to_file(spoiler=attachment.is_spoiler())
                         for attachment in message.attachments
