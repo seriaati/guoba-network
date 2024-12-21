@@ -96,7 +96,7 @@ class Network(commands.Cog):
                 author_name = message.author.display_name.removesuffix(" (Embed Fixer)")
                 await webhook.send(
                     content=message.content,
-                    username=f"{author_name} (來自 {message.guild.name})",
+                    username=f"{author_name} (來自:{message.guild.name})",
                     avatar_url=message.author.display_avatar.url,
                     files=[
                         await attachment.to_file(spoiler=attachment.is_spoiler())
@@ -105,7 +105,7 @@ class Network(commands.Cog):
                 )
             else:
                 await channel.send(
-                    content=f"(來自 {message.guild.name})\n{message.content}",
+                    content=f"(來自:{message.guild.name})\n{message.content}",
                     files=[
                         await attachment.to_file(spoiler=attachment.is_spoiler())
                         for attachment in message.attachments
