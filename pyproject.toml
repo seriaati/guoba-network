@@ -5,11 +5,23 @@ description = "基於 Discord 機器人的圖片分享網絡"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "discord-py[speed]>=2.4.0",
+    "aerich>=0.8.0",
+    "discord-py>=2.4.0",
     "jishaku>=2.5.2",
     "loguru>=0.7.2",
+    "python-dotenv>=1.0.1",
     "tortoise-orm[asyncpg]>=0.22.2",
     "uvloop>=0.20.0; platform_system == 'Linux'",
 ]
 license = { file = "LICENSE" }
 authors = [{ name = "seriaati", email = "seria.ati@gmail.com" }]
+
+[tool.pyright]
+enableTypeIgnoreComments = false
+reportIncompatibleMethodOverride = false
+reportIncompatibleVariableOverride = false
+reportUnnecessaryComparison = true
+reportUnnecessaryContains = true
+reportUnnecessaryIsInstance = true
+reportUnnecessaryTypeIgnoreComment = true
+typeCheckingMode = "standard"

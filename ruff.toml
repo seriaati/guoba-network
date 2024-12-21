@@ -1,0 +1,44 @@
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "C90",
+    "I",
+    "N",
+    "UP",
+    "ANN",
+    "ASYNC",
+    "S",
+    "B",
+    "A",
+    "C4",
+    "DTZ",
+    "EM",
+    "FA",
+    "PIE",
+    "T20",
+    "RSE",
+    "RET",
+    "SIM",
+    "TC",
+    "ARG",
+    "PTH",
+    "PL",
+    "TRY",
+    "RUF",
+]
+
+[lint.per-file-ignores]
+"**/__init__.py" = ["F403", "F401"]
+"./migrations/*.py" = ["ALL"]
+
+[lint.isort]
+required-imports = ["from __future__ import annotations"]
+split-on-trailing-comma = false
+
+[format]
+skip-magic-trailing-comma = true
