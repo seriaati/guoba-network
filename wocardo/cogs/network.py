@@ -105,7 +105,7 @@ class Network(commands.Cog):
                 )
             else:
                 await channel.send(
-                    content=message.content,
+                    content=f"(來自 {message.guild.name})\n{message.content}",
                     files=[
                         await attachment.to_file(spoiler=attachment.is_spoiler())
                         for attachment in message.attachments
