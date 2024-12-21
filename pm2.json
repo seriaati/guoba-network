@@ -1,0 +1,10 @@
+{
+    "apps": [
+        {
+            "name": "wocardo-network",
+            "script": "./run.py",
+            "interpreter": "./.venv/bin/python",
+            "interpreter_args": "-OO"
+        }
+    ]
+}
