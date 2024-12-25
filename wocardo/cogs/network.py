@@ -10,6 +10,8 @@ from wocardo.db.models import Guild
 if TYPE_CHECKING:
     from wocardo.bot import WocardoBot
 
+MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".mov", ".avi", ".mkv"}
+
 
 class Network(commands.Cog):
     def __init__(self, bot: WocardoBot) -> None:
@@ -53,7 +55,7 @@ class Network(commands.Cog):
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message) -> None:
         if (
-            not message.attachments
+            (not message.attachments and not any(ext in message.content for ext in MEDIA_EXTS))
             or message.guild is None
             or isinstance(
                 message.channel,
