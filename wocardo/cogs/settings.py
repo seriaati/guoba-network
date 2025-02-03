@@ -18,7 +18,7 @@ class Settings(commands.Cog):
     def __init__(self, bot: WocardoBot) -> None:
         self.bot = bot
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="設置總覽", description="查看當前伺服器網路設置")
     async def show_settings(self, i: Interaction) -> None:
         if i.guild is None:
@@ -53,7 +53,7 @@ class Settings(commands.Cog):
 
         await i.response.send_message(embed=embed)
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="新增發送人", description="新增發送人")
     @app_commands.rename(user="發送人")
     @app_commands.describe(user="只有發送人發送的圖片才會被轉發到網路上的其他接收站")
@@ -68,7 +68,7 @@ class Settings(commands.Cog):
             embed=DefaultEmbed(title="發送人新增成功", description=f"已新增 <@{user.id}>")
         )
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="移除發送人", description="移除發送人")
     @app_commands.rename(user="發送人")
     @app_commands.describe(user="移除發送人後, 該使用者發送的圖片將不再被轉發到網路上的其他接收站")
@@ -91,7 +91,7 @@ class Settings(commands.Cog):
             embed=DefaultEmbed(title="移除成功", description=f"已移除發送人 <@{user_id}>")
         )
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="新增發送站", description="新增發送站")
     @app_commands.rename(channel="發送站")
     @app_commands.describe(channel="只有在發送站發送的圖片才會被轉發到網路上的其他接收站")
@@ -106,7 +106,7 @@ class Settings(commands.Cog):
             embed=DefaultEmbed(title="發送站新增成功", description=f"已新增發送站 <#{channel.id}>")
         )
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="移除發送站", description="移除發送站")
     @app_commands.rename(channel="發送站")
     @app_commands.describe(channel="移除發送站後, 該頻道發送的圖片將不再被轉發到網路上的其他接收站")
@@ -130,7 +130,7 @@ class Settings(commands.Cog):
             embed=DefaultEmbed(title="移除成功", description=f"已移除發送站 <#{channel_id}>")
         )
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="設置接收站", description="設置接收站")
     @app_commands.rename(channel="接收站")
     @app_commands.describe(channel="接收來自網路上其他發送站的圖片, 機器人會自動判斷接受站類別")
@@ -169,12 +169,12 @@ class Settings(commands.Cog):
             )
         )
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="移除一般接收站", description="將當前設置的一般接收站移除")
     async def remove_regular_receiver(self, i: Interaction) -> None:
         await self._remove_receiver(i, ChannelType.REGULAR_RECEIVE)
 
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.default_permissions()
     @app_commands.command(name="移除nsfw接收站", description="將當前設置的 NSFW 接收站移除")
     async def remove_nsfw_receiver(self, i: Interaction) -> None:
         await self._remove_receiver(i, ChannelType.NSFW_RECEIVE)
