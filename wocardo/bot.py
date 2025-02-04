@@ -26,6 +26,7 @@ class WocardoBot(commands.Bot):
             allowed_contexts=discord.app_commands.AppCommandContext(
                 guild=True, dm_channel=False, private_channel=False
             ),
+            allowed_mentions=discord.AllowedMentions.none(),
             tree_cls=CommandTree,
         )
         self.user: discord.ClientUser
