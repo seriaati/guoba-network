@@ -10,6 +10,7 @@ from wocardo.db.models import Guild
 if TYPE_CHECKING:
     from wocardo.bot import WocardoBot
 
+FILE_TOO_LARGE_RETCODE = 40005
 MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".mov", ".avi", ".mkv"}
 
 
@@ -53,7 +54,7 @@ class Network(commands.Cog):
         return webhook
 
     @commands.Cog.listener("on_message")
-    async def on_message(self, message: discord.Message) -> None:
+    async def on_message(self, message: discord.Message) -> None:  # noqa: C901
         if (
             (not message.attachments and not any(ext in message.content for ext in MEDIA_EXTS))
             or message.guild is None
@@ -96,27 +97,44 @@ class Network(commands.Cog):
             if isinstance(channel, discord.ForumChannel | discord.CategoryChannel):
                 continue
 
-            if isinstance(channel, discord.TextChannel):
-                webhook = await self._get_webhook(channel)
-                author_name = message.author.display_name.removesuffix(" (Embed Fixer)")
-                author = author or message.author
-                await webhook.send(
-                    content=message.content,
-                    username=f"{author_name} (來自:{message.guild.name})",
-                    avatar_url=author.display_avatar.url,
-                    files=[
-                        await attachment.to_file(spoiler=attachment.is_spoiler())
-                        for attachment in message.attachments
-                    ],
+            files = [
+                await attachment.to_file(spoiler=attachment.is_spoiler())
+                for attachment in message.attachments
+            ]
+            try:
+                await self.send_message(
+                    message=message, author=author, guild=dc_guild, channel=channel, files=files
                 )
-            else:
-                await channel.send(
-                    content=f"(來自:{message.guild.name})\n{message.content}",
-                    files=[
-                        await attachment.to_file(spoiler=attachment.is_spoiler())
-                        for attachment in message.attachments
-                    ],
+            except discord.Forbidden as e:
+                if e.code != FILE_TOO_LARGE_RETCODE:
+                    raise
+
+                message.content += f"\n{'\n'.join(a.url for a in message.attachments)}"
+                await self.send_message(
+                    message=message, author=author, guild=dc_guild, channel=channel, files=[]
                 )
+
+    async def send_message(
+        self,
+        *,
+        message: discord.Message,
+        author: discord.Member | discord.User | None,
+        guild: discord.Guild,
+        channel: discord.VoiceChannel | discord.TextChannel | discord.StageChannel | discord.Thread,
+        files: list[discord.File],
+    ) -> None:
+        if isinstance(channel, discord.TextChannel):
+            webhook = await self._get_webhook(channel)
+            author_name = message.author.display_name.removesuffix(" (Embed Fixer)")
+            author = author or message.author
+            await webhook.send(
+                content=message.content,
+                username=f"{author_name} (來自:{guild.name})",
+                avatar_url=author.display_avatar.url,
+                files=files,
+            )
+        else:
+            await channel.send(content=f"(來自:{guild.name})\n{message.content}", files=files)
 
 
 async def setup(bot: WocardoBot) -> None:
