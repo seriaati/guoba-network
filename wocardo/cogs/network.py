@@ -103,7 +103,11 @@ class Network(commands.Cog):
             ]
             try:
                 await self.send_message(
-                    message=message, author=author, guild=dc_guild, channel=channel, files=files
+                    message=message,
+                    author=author,
+                    guild=message.guild,
+                    channel=channel,
+                    files=files,
                 )
             except discord.Forbidden as e:
                 if e.code != FILE_TOO_LARGE_RETCODE:
@@ -111,7 +115,7 @@ class Network(commands.Cog):
 
                 message.content += f"\n{'\n'.join(a.url for a in message.attachments)}"
                 await self.send_message(
-                    message=message, author=author, guild=dc_guild, channel=channel, files=[]
+                    message=message, author=author, guild=message.guild, channel=channel, files=[]
                 )
 
     async def send_message(
