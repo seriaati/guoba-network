@@ -20,6 +20,7 @@ class WocardoBot(commands.Bot):
             case_insensitive=True,
             intents=intents,
             help_command=None,
+            mex_messages=None,
             chunk_guilds_at_startup=False,
             member_cache_flags=discord.MemberCacheFlags.none(),
             allowed_contexts=discord.app_commands.AppCommandContext(

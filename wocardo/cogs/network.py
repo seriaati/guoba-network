@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
+from loguru import logger
 
 from wocardo.db.models import Guild, MessageLink
 
@@ -85,18 +86,6 @@ class Network(commands.Cog):
 
         return await channel.send(content=f"(來自:{guild.name})\n{message.content}", files=files)
 
-    async def _delete_message_links(self, message: discord.Message) -> None:
-        message_links = await MessageLink.filter(source_id=message.id)
-
-        for message_link in message_links:
-            try:
-                channel = self.bot.get_partial_messageable(message_link.channel_id)
-                await channel.get_partial_message(message_link.id).delete()
-            except discord.HTTPException:
-                pass
-            else:
-                await message_link.delete()
-
     @commands.Cog.listener("on_message")
     async def forward_medias(self, message: discord.Message) -> None:  # noqa: C901
         if (
@@ -172,9 +161,22 @@ class Network(commands.Cog):
                 source_id=message.id,
             )
 
-    @commands.Cog.listener("on_message_delete")
-    async def delete_message_link(self, message: discord.Message) -> None:
-        await self._delete_message_links(message)
+    @commands.Cog.listener("on_raw_message_delete")
+    async def delete_message_links(self, payload: discord.RawMessageDeleteEvent) -> None:
+        message_id = payload.message_id
+        logger.info(f"Noticed message {message_id} deleted")
+
+        message_links = await MessageLink.filter(source_id=message_id)
+        logger.info(f"Found {len(message_links)} message links")
+
+        for message_link in message_links:
+            try:
+                channel = self.bot.get_partial_messageable(message_link.channel_id)
+                await channel.get_partial_message(message_link.id).delete()
+            except discord.HTTPException:
+                pass
+            else:
+                await message_link.delete()
 
     @commands.Cog.listener("on_raw_reaction_add")
     async def delete_message_on_reaction(self, reaction: discord.RawReactionActionEvent) -> None:
