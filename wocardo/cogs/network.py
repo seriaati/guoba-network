@@ -192,7 +192,15 @@ class Network(commands.Cog):
         if author_name is None or author_name != author.name:
             return
 
-        await message.delete()
+        try:
+            await message.delete()
+        except discord.NotFound:
+            pass
+        except discord.Forbidden:
+            await message.channel.send(
+                f"無法刪除 {message.author.mention} 的訊息, "
+                f"請檢查 {self.bot.user.mention} 是否有管理訊息的權限"
+            )
 
 
 async def setup(bot: WocardoBot) -> None:
