@@ -99,3 +99,11 @@ class Guild(BaseModel):
         self.send_users.remove(user_id)
         await self.save(update_fields=("send_users",))
         return user_id
+
+
+class MessageLink(BaseModel):
+    id = fields.BigIntField(pk=True, generated=False)
+    author_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    guild_id = fields.BigIntField()
+    source_id = fields.BigIntField()

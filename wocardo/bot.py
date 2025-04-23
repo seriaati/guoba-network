@@ -21,7 +21,6 @@ class WocardoBot(commands.Bot):
             intents=intents,
             help_command=None,
             chunk_guilds_at_startup=False,
-            max_messages=None,
             member_cache_flags=discord.MemberCacheFlags.none(),
             allowed_contexts=discord.app_commands.AppCommandContext(
                 guild=True, dm_channel=False, private_channel=False

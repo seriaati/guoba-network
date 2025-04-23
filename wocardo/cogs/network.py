@@ -1,22 +1,31 @@
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
-from wocardo.db.models import Guild
+from wocardo.db.models import Guild, MessageLink
 
 if TYPE_CHECKING:
     from wocardo.bot import WocardoBot
 
 FILE_TOO_LARGE_RETCODE = 40005
-MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".mov", ".avi", ".mkv"}
+MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".mov", ".mkv"}
+NAME_PATTERN = r"^(.*?)\s+\(來自:.*\)$"
 
 
 class Network(commands.Cog):
     def __init__(self, bot: WocardoBot) -> None:
         self.bot = bot
+
+    @staticmethod
+    def _extract_author_name(name: str) -> str | None:
+        match = re.search(NAME_PATTERN, name)
+        if match:
+            return match.group(1)
+        return None
 
     async def _is_send_user(
         self, message: discord.Message, guild: Guild
@@ -53,8 +62,43 @@ class Network(commands.Cog):
 
         return webhook
 
+    async def _send_message(
+        self,
+        *,
+        message: discord.Message,
+        author: discord.Member | discord.User | None,
+        guild: discord.Guild,
+        channel: discord.VoiceChannel | discord.TextChannel | discord.StageChannel | discord.Thread,
+        files: list[discord.File],
+    ) -> discord.Message:
+        if isinstance(channel, discord.TextChannel):
+            webhook = await self._get_webhook(channel)
+            author_name = message.author.name.removesuffix(" (Embed Fixer)")
+            author = author or message.author
+            return await webhook.send(
+                content=message.content,
+                username=f"{author_name} (來自:{guild.name})",
+                avatar_url=author.display_avatar.url,
+                files=files,
+                wait=True,
+            )
+
+        return await channel.send(content=f"(來自:{guild.name})\n{message.content}", files=files)
+
+    async def _delete_message_links(self, message: discord.Message) -> None:
+        message_links = await MessageLink.filter(source_id=message.id)
+
+        for message_link in message_links:
+            try:
+                channel = self.bot.get_partial_messageable(message_link.channel_id)
+                await channel.get_partial_message(message_link.id).delete()
+            except discord.HTTPException:
+                pass
+            else:
+                await message_link.delete()
+
     @commands.Cog.listener("on_message")
-    async def on_message(self, message: discord.Message) -> None:  # noqa: C901
+    async def forward_medias(self, message: discord.Message) -> None:  # noqa: C901
         if (
             (not message.attachments and not any(ext in message.content for ext in MEDIA_EXTS))
             or message.guild is None
@@ -102,7 +146,7 @@ class Network(commands.Cog):
                 for attachment in message.attachments
             ]
             try:
-                await self.send_message(
+                sent_message = await self._send_message(
                     message=message,
                     author=author,
                     guild=message.guild,
@@ -114,31 +158,39 @@ class Network(commands.Cog):
                     raise
 
                 message.content += f"\n{'\n'.join(a.url for a in message.attachments)}"
-                await self.send_message(
+                sent_message = await self._send_message(
                     message=message, author=author, guild=message.guild, channel=channel, files=[]
                 )
 
-    async def send_message(
-        self,
-        *,
-        message: discord.Message,
-        author: discord.Member | discord.User | None,
-        guild: discord.Guild,
-        channel: discord.VoiceChannel | discord.TextChannel | discord.StageChannel | discord.Thread,
-        files: list[discord.File],
-    ) -> None:
-        if isinstance(channel, discord.TextChannel):
-            webhook = await self._get_webhook(channel)
-            author_name = message.author.display_name.removesuffix(" (Embed Fixer)")
-            author = author or message.author
-            await webhook.send(
-                content=message.content,
-                username=f"{author_name} (來自:{guild.name})",
-                avatar_url=author.display_avatar.url,
-                files=files,
+            await sent_message.add_reaction("❌")
+
+            await MessageLink.create(
+                id=sent_message.id,
+                author_id=message.author.id,
+                channel_id=message.channel.id,
+                guild_id=guild.id,
+                source_id=message.id,
             )
-        else:
-            await channel.send(content=f"(來自:{guild.name})\n{message.content}", files=files)
+
+    @commands.Cog.listener("on_message_delete")
+    async def delete_message_link(self, message: discord.Message) -> None:
+        await self._delete_message_links(message)
+
+    @commands.Cog.listener("on_raw_reaction_add")
+    async def delete_message_on_reaction(self, reaction: discord.RawReactionActionEvent) -> None:
+        if str(reaction.emoji) != "❌":
+            return
+
+        message = await self.bot.get_partial_messageable(reaction.channel_id).fetch_message(
+            reaction.message_id
+        )
+        author = await self.bot.fetch_user(reaction.user_id)
+        author_name = self._extract_author_name(message.author.name)
+
+        if author_name is None or author_name != author.name:
+            return
+
+        await message.delete()
 
 
 async def setup(bot: WocardoBot) -> None:
