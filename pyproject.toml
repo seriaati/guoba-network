@@ -25,3 +25,8 @@ reportUnnecessaryContains = true
 reportUnnecessaryIsInstance = true
 reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "standard"
+
+[tool.aerich]
+tortoise_orm = "wocardo.db.config.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
