@@ -146,7 +146,10 @@ class Network(commands.Cog):
                 if e.code != FILE_TOO_LARGE_RETCODE:
                     raise
 
-                message.content += f"\n{'\n'.join(a.url for a in message.attachments)}"
+                attachment_urls = "\n".join(
+                    a.url for a in message.attachments if a.url not in message.content
+                )
+                message.content += f"\n{attachment_urls}"
                 sent_message = await self._send_message(
                     message=message, author=author, guild=message.guild, channel=channel, files=[]
                 )
