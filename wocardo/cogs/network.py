@@ -154,11 +154,7 @@ class Network(commands.Cog):
             await sent_message.add_reaction("❌")
 
             await MessageLink.create(
-                id=sent_message.id,
-                author_id=message.author.id,
-                channel_id=message.channel.id,
-                guild_id=guild.id,
-                source_id=message.id,
+                id=sent_message.id, channel_id=channel.id, source_id=message.id
             )
 
     @commands.Cog.listener("on_raw_message_delete")
@@ -171,15 +167,13 @@ class Network(commands.Cog):
 
         for message_link in message_links:
             channel = self.bot.get_partial_messageable(message_link.channel_id)
+
             try:
                 await channel.get_partial_message(message_link.id).delete()
             except discord.NotFound:
                 pass
             except discord.Forbidden:
-                await channel.send(
-                    f"無法刪除 {message_link.author_id} 的訊息, "
-                    f"請檢查 {self.bot.user.mention} 是否有管理訊息的權限"
-                )
+                logger.error(f"Failed to delete message in {channel.id=}")
             else:
                 await message_link.delete()
 

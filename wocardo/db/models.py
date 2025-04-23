@@ -103,7 +103,5 @@ class Guild(BaseModel):
 
 class MessageLink(BaseModel):
     id = fields.BigIntField(pk=True, generated=False)
-    author_id = fields.BigIntField()
     channel_id = fields.BigIntField()
-    guild_id = fields.BigIntField()
     source_id = fields.BigIntField()
