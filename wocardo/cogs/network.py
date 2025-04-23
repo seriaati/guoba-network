@@ -109,7 +109,7 @@ class Network(commands.Cog):
                     channel=channel,
                     files=files,
                 )
-            except discord.Forbidden as e:
+            except discord.HTTPException as e:
                 if e.code != FILE_TOO_LARGE_RETCODE:
                     raise
 
