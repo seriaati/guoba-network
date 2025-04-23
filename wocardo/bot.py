@@ -34,7 +34,6 @@ class WocardoBot(commands.Bot):
     async def setup_hook(self) -> None:
         logger.info("Initializing database")
         await Tortoise.init(TORTOISE_ORM)
-        await Tortoise.generate_schemas()
 
         for filepath in Path("wocardo/cogs").glob("**/*.py"):
             cog_name = Path(filepath).stem
